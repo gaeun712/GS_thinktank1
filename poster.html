@@ -364,12 +364,19 @@ body{background:#dde2ea;min-height:100vh}
 /* ── PRINT ── */
 @media print{
   #tb,#ftb,#cpop,#toast,.add-photo,.pov,.cbtn,.pph{display:none!important}
+  *{
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+    color-adjust:exact!important;
+  }
   body{background:#fff;margin:0}
   #pw{padding:0;background:#fff}
   #poster{
-    width:594mm;height:841mm;
+    width:860px;
+    height:1216px;
     box-shadow:none;border-radius:0;
     overflow:hidden;
+    transform-origin:top left;
   }
   .f:empty::before{display:none}
   @page{size:A1 portrait;margin:0}
