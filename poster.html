@@ -79,8 +79,13 @@ window._fb_connect = ()=>{
   if(!t){toast('주제를 선택해주세요','w');return;}
   const c2=document.getElementById('sel-center').value; key=`sinktank_${c2}_${t}`;
   updateBadge();
+  // 연결 전 화면 초기화
+  if(window.clearPoster) window.clearPoster();
   onValue(ref(db,`posters/${key}`),snap=>{
-    if(!snap.exists())return;
+    if(!snap.exists()){
+      syncing=false;
+      return;
+    }
     syncing=true; apply(snap.val());
     setTimeout(()=>syncing=false,300);
     setSyncDot(true);
@@ -593,7 +598,7 @@ body{background:#dde2ea;min-height:100vh}
 <script>
 
 /* ══ 포스터 초기화 ══ */
-function clearPoster(){
+window.clearPoster = function clearPoster(){
   const fields=['f-title','f-motive','f-question','f-hypo','f-bg1','f-bg2',
     'f-materials','f-proc','f-data','f-analysis','f-conc','f-climlink',
     'f-disc','f-newq','f-refs'];
