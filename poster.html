@@ -36,7 +36,7 @@ const collect = () => {
   const g=id=>document.getElementById(id)?.innerHTML||'';
   const v=id=>document.getElementById(id)?.value||'';
   return { title:g('f-title'), grade:v('m-grade'),
-    members:v('m-members'), date:v('m-date'), center:v('sel-center'), center:v('sel-center'), topic:v('sel-topic'),
+    members:v('m-members'), date:v('m-date'), center:v('sel-center'), topic:v('sel-topic'),
     motive:g('f-motive'), question:g('f-question'), hypo:g('f-hypo'),
     bg1:g('f-bg1'), bg2:g('f-bg2'), materials:g('f-materials'), proc:g('f-proc'),
     data:g('f-data'), analysis:g('f-analysis'), conc:g('f-conc'),
@@ -48,7 +48,7 @@ const apply = d => {
   const sh=(id,h)=>{const e=document.getElementById(id);if(e&&document.activeElement!==e)e.innerHTML=h||'';};
   const sv=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
   sh('f-title',d.title);  sv('m-grade',d.grade);
-  sv('m-members',d.members); sv('m-date',d.date); sv('sel-center',d.center||'1'); sv('sel-center',d.center||'1'); sv('sel-topic',d.topic||'');
+  sv('m-members',d.members); sv('m-date',d.date); sv('sel-center',d.center||'1'); sv('sel-topic',d.topic||'');
   updateBadge();
   ['motive','question','hypo','bg1','bg2','materials','proc','data','analysis','conc','climlink','disc','further','newq','refs']
     .forEach(k=>sh('f-'+k, d[k]||''));
@@ -74,23 +74,25 @@ window._fb_save = ()=>{
   if(!key){toast('주제를 먼저 선택하세요','w');return;}
   set(ref(db,`posters/${key}`),collect()).then(()=>toast('☁️ 저장됨','ok')).catch(e=>toast(e.message,'e'));
 };
+let _unsubscribe = null;
 window._fb_connect = ()=>{
   const t=document.getElementById('sel-topic').value;
   if(!t){toast('주제를 선택해주세요','w');return;}
-  const c2=document.getElementById('sel-center').value; key=`sinktank_${c2}_${t}`;
+  const c2=document.getElementById('sel-center').value;
+  key=`sinktank_${c2}_${t}`;
   updateBadge();
-  // 연결 전 화면 초기화
+  // 이전 구독 해제
+  if(_unsubscribe) { _unsubscribe(); _unsubscribe=null; }
+  // 화면 초기화
   if(window.clearPoster) window.clearPoster();
-  onValue(ref(db,`posters/${key}`),snap=>{
-    if(!snap.exists()){
-      syncing=false;
-      return;
-    }
+  // 새 구독
+  _unsubscribe = onValue(ref(db,`posters/${key}`),snap=>{
+    if(!snap.exists()){ syncing=false; return; }
     syncing=true; apply(snap.val());
     setTimeout(()=>syncing=false,300);
     setSyncDot(true);
   });
-  const c3=document.getElementById('sel-center').value; toast(`${c3}센터 기후변화와 ${t} 연결됨 ✓`,'ok');
+  toast(`${c2}센터 기후변화와 ${t} 연결됨 ✓`,'ok');
 };
 window._autosave = ()=>{
   if(syncing)return;
@@ -806,7 +808,7 @@ function collectLocal(){
   const g=id=>document.getElementById(id)?.innerHTML||'';
   const v=id=>document.getElementById(id)?.value||'';
   return { title:g('f-title'), grade:v('m-grade'),
-    members:v('m-members'), date:v('m-date'), center:v('sel-center'), center:v('sel-center'), topic:v('sel-topic'),
+    members:v('m-members'), date:v('m-date'), center:v('sel-center'), topic:v('sel-topic'),
     motive:g('f-motive'), question:g('f-question'), hypo:g('f-hypo'),
     bg1:g('f-bg1'), bg2:g('f-bg2'), materials:g('f-materials'), proc:g('f-proc'),
     data:g('f-data'), analysis:g('f-analysis'), conc:g('f-conc'),
@@ -817,7 +819,7 @@ function applyLocal(d){
   const sh=(id,h)=>{const e=document.getElementById(id);if(e)e.innerHTML=h||'';};
   const sv=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
   sh('f-title',d.title);  sv('m-grade',d.grade);
-  sv('m-members',d.members); sv('m-date',d.date); sv('sel-center',d.center||'1'); sv('sel-center',d.center||'1'); sv('sel-topic',d.topic||'');
+  sv('m-members',d.members); sv('m-date',d.date); sv('sel-center',d.center||'1'); sv('sel-topic',d.topic||'');
   updateBadge();
   ['motive','question','hypo','bg1','bg2','materials','proc','data','analysis','conc','climlink','disc','further','newq','refs']
     .forEach(k=>sh('f-'+k, d[k]||''));
@@ -858,3 +860,4 @@ function toast(msg,type='ok'){
 </script>
 </body>
 </html>
+
