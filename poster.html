@@ -11,13 +11,13 @@ import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebase
 
 /* ★ Firebase 설정값을 여기에 붙여넣으세요 ★ */
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  databaseURL:       "https://YOUR_PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey:            "AIzaSyBj9AreL1REhqjfm3m6JcYxF3G9c8ewHF0",
+  authDomain:        "sinktank-poster.firebaseapp.com",
+  databaseURL:       "https://sinktank-poster-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "sinktank-poster",
+  storageBucket:     "sinktank-poster.firebasestorage.app",
+  messagingSenderId: "731875321141",
+  appId:             "1:731875321141:web:3d5621209a1dade481d87c"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -591,6 +591,33 @@ body{background:#dde2ea;min-height:100vh}
 <div id="toast"></div>
 
 <script>
+
+/* ══ 포스터 초기화 ══ */
+function clearPoster(){
+  const fields=['f-title','f-motive','f-question','f-hypo','f-bg1','f-bg2',
+    'f-materials','f-proc','f-data','f-analysis','f-conc','f-climlink',
+    'f-disc','f-newq','f-refs'];
+  fields.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='';
+  });
+  // 메타 입력 초기화 (학교 제외)
+  ['m-grade','m-members','m-date'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  // 날짜 초기화
+  const dt=document.getElementById('m-date');
+  if(dt) dt.value='';
+  // 사진 초기화
+  const area=document.getElementById('photo-area');
+  if(area) area.innerHTML='';
+  [0,1,2,3].forEach(()=>addSlot(false));
+  // 색상 초기화
+  document.querySelectorAll('.card[data-sid] .cbody').forEach(el=>el.style.background='');
+  document.querySelectorAll('.card[data-sid] .chdr').forEach(el=>el.style.background='');
+}
+
 /* ══ 배지 업데이트 ══ */
 function updateBadge(){
   const c=document.getElementById('sel-center').value;
