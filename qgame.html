@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>질문 탐정단</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#090d18;--surface:#111827;--surface2:#1c2538;--cyan:#00f5d4;--yellow:#ffd60a;--red:#ff4757;--green:#2ed573;--blue:#1e90ff;--purple:#a855f7;--text:#f1f5f9;--muted:#64748b;--radius:20px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;overflow-x:hidden;}
+#cvs{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.scr{display:none;position:relative;z-index:1;min-height:100vh;width:100%;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.scr.on{display:flex;}
+#intro{text-align:center;gap:18px;}
+.i-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(0,245,212,.07) 0%,transparent 70%);border-radius:50%;pointer-events:none;}
+.i-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,245,212,.1);border:1px solid rgba(0,245,212,.25);border-radius:999px;padding:6px 18px;font-size:11px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;animation:fu .5s ease both;}
+.i-title{font-family:'Black Han Sans',sans-serif;font-size:clamp(2.6rem,8vw,5rem);line-height:1.1;animation:fu .5s .08s ease both;}
+.i-title .c1{color:var(--cyan);display:block;}
+.i-title .c2{color:var(--yellow);}
+.i-sub{font-size:.95rem;color:var(--muted);line-height:1.85;max-width:340px;animation:fu .5s .16s ease both;}
+.ni{width:100%;max-width:400px;animation:fu .5s .24s ease both;}
+.ni input{width:100%;padding:16px 20px;background:var(--surface2);border:2px solid rgba(255,255,255,.08);border-radius:14px;color:var(--text);font-size:1rem;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;}
+.ni input:focus{border-color:var(--cyan);}
+.ni input::placeholder{color:var(--muted);}
+.btn-s{width:100%;max-width:400px;padding:18px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#090d18;font-family:'Black Han Sans',sans-serif;font-size:1.2rem;cursor:pointer;box-shadow:0 0 40px rgba(0,245,212,.25);transition:transform .15s,box-shadow .15s;animation:fu .5s .32s ease both;}
+.btn-s:hover{transform:translateY(-3px);box-shadow:0 0 60px rgba(0,245,212,.4);}
+#game{justify-content:flex-start;padding:14px;gap:0;}
+.hud{width:100%;max-width:700px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:12px;}
+.hud-name{font-size:.85rem;color:var(--cyan);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hud-score{background:var(--surface2);border:1px solid rgba(255,214,10,.25);border-radius:999px;padding:8px 22px;font-family:'Black Han Sans',sans-serif;font-size:1.1rem;color:var(--yellow);text-align:center;white-space:nowrap;}
+.hud-combo{font-size:.82rem;color:var(--muted);text-align:right;}
+.hud-combo b{color:var(--purple);}
+.prog-wrap{width:100%;max-width:700px;margin-bottom:12px;}
+.prog-meta{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:5px;}
+.prog-track{width:100%;height:5px;background:var(--surface2);border-radius:999px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--blue));border-radius:999px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.tmr-row{width:100%;max-width:700px;display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.tmr-ring{position:relative;width:62px;height:62px;flex-shrink:0;}
+.tmr-svg{transform:rotate(-90deg);}
+.tmr-trk{fill:none;stroke:var(--surface2);stroke-width:5;}
+.tmr-arc{fill:none;stroke-width:5;stroke-linecap:round;stroke-dasharray:157;stroke-dashoffset:0;transition:stroke-dashoffset .95s linear,stroke .3s;}
+.tmr-n{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Black Han Sans',sans-serif;font-size:1.25rem;transition:color .3s;}
+.tmr-bar-wrap{flex:1;height:10px;background:var(--surface2);border-radius:999px;overflow:hidden;}
+.tmr-bar{height:100%;border-radius:999px;transition:width .95s linear,background .3s;}
+.qc{width:100%;max-width:700px;background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:26px 24px 20px;margin-bottom:12px;position:relative;overflow:hidden;}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--blue),var(--purple));}
+.qtag{display:inline-block;font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:999px;margin-bottom:12px;font-weight:700;}
+.t-j{background:rgba(0,245,212,.08);color:var(--cyan);border:1px solid rgba(0,245,212,.2);}
+.t-r{background:rgba(255,214,10,.08);color:var(--yellow);border:1px solid rgba(255,214,10,.2);}
+.qt{font-size:1.1rem;font-weight:700;line-height:1.7;color:var(--text);}
+.jg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;}
+.jb{padding:14px 8px;border:2px solid rgba(255,255,255,.07);border-radius:14px;background:var(--surface2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:.88rem;font-weight:700;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:5px;transition:transform .15s,border-color .15s,background .15s,box-shadow .15s;}
+.jb .ico{font-size:1.7rem;}
+.jb:not(:disabled):hover{transform:translateY(-4px);}
+.jb.sg{border-color:var(--green);background:rgba(46,213,115,.08);box-shadow:0 0 20px rgba(46,213,115,.2);}
+.jb.sb{border-color:var(--red);background:rgba(255,71,87,.08);box-shadow:0 0 20px rgba(255,71,87,.2);}
+.jb.sa{border-color:var(--blue);background:rgba(30,144,255,.08);box-shadow:0 0 20px rgba(30,144,255,.2);}
+.jb:disabled{opacity:.45;cursor:not-allowed;transform:none!important;}
+.fb{width:100%;max-width:700px;border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;display:none;animation:su .3s ease;}
+.fok{background:rgba(46,213,115,.07);border:1.5px solid rgba(46,213,115,.25);}
+.fng{background:rgba(255,71,87,.07);border:1.5px solid rgba(255,71,87,.25);}
+.fam{background:rgba(30,144,255,.07);border:1.5px solid rgba(30,144,255,.25);}
+.fto{background:rgba(255,214,10,.07);border:1.5px solid rgba(255,214,10,.25);}
+.fb-t{font-weight:700;font-size:.95rem;margin-bottom:5px;}
+.fb-b{font-size:.85rem;line-height:1.7;color:var(--muted);}
+.rw{width:100%;max-width:700px;background:var(--surface);border:1px solid rgba(255,214,10,.12);border-radius:var(--radius);padding:20px 22px;margin-bottom:12px;display:none;animation:su .3s ease;}
+.rw-h{font-size:.83rem;color:var(--muted);line-height:1.65;margin-bottom:10px;}
+.rw textarea{width:100%;min-height:72px;background:var(--surface2);border:1.5px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;color:var(--text);font-size:.93rem;font-family:'Noto Sans KR',sans-serif;resize:vertical;outline:none;transition:border-color .15s;}
+.rw textarea:focus{border-color:var(--yellow);}
+.btn-ai{margin-top:10px;width:100%;padding:13px;background:rgba(255,214,10,.07);border:1.5px solid rgba(255,214,10,.25);border-radius:12px;color:var(--yellow);font-size:.93rem;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:background .15s,box-shadow .15s;}
+.btn-ai:hover{background:rgba(255,214,10,.15);box-shadow:0 0 20px rgba(255,214,10,.2);}
+.btn-ai:disabled{opacity:.4;cursor:not-allowed;}
+.ai-r{margin-top:10px;padding:14px 16px;border-radius:12px;font-size:.85rem;line-height:1.7;background:rgba(0,245,212,.05);border:1px solid rgba(0,245,212,.18);color:var(--muted);display:none;animation:su .3s ease;}
+.btn-nx{width:100%;max-width:700px;padding:15px;background:linear-gradient(135deg,var(--cyan),var(--blue));border:none;border-radius:14px;color:#090d18;font-family:'Black Han Sans',sans-serif;font-size:1.05rem;cursor:pointer;display:none;box-shadow:0 0 30px rgba(0,245,212,.2);transition:transform .15s,box-shadow .15s;animation:su .3s ease;}
+.btn-nx:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(0,245,212,.4);}
+#result{text-align:center;gap:14px;}
+.r-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(255,214,10,.06) 0%,transparent 70%);pointer-events:none;}
+.r-rank{font-family:'Black Han Sans',sans-serif;font-size:clamp(3rem,12vw,6rem);line-height:1;animation:zi .5s cubic-bezier(.175,.885,.32,1.275) both;}
+.r-nm{font-size:1rem;color:var(--cyan);font-weight:700;}
+.r-sc{font-family:'Black Han Sans',sans-serif;font-size:clamp(2.5rem,10vw,5rem);color:var(--yellow);text-shadow:0 0 40px rgba(255,214,10,.4);animation:zi .5s .1s cubic-bezier(.175,.885,.32,1.275) both;}
+.r-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:400px;}
+.sb2{background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px 8px;text-align:center;}
+.sv{font-family:'Black Han Sans',sans-serif;font-size:1.5rem;color:var(--cyan);}
+.sl{font-size:.72rem;color:var(--muted);margin-top:2px;}
+.r-msg{font-size:.9rem;color:var(--muted);max-width:340px;line-height:1.7;}
+.r-sh{background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px 16px;font-size:.82rem;max-width:400px;width:100%;color:var(--muted);}
+.btn-re{width:100%;max-width:400px;padding:15px;background:var(--surface2);border:1.5px solid rgba(0,245,212,.25);border-radius:14px;color:var(--cyan);font-family:'Black Han Sans',sans-serif;font-size:1.05rem;cursor:pointer;transition:background .15s,box-shadow .15s;}
+.btn-re:hover{background:rgba(0,245,212,.1);box-shadow:0 0 30px rgba(0,245,212,.2);}
+.cpop{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-family:'Black Han Sans',sans-serif;font-size:2.8rem;color:var(--yellow);text-shadow:0 0 30px rgba(255,214,10,.8);pointer-events:none;z-index:999;opacity:0;}
+.sburst{position:fixed;font-family:'Black Han Sans',sans-serif;font-size:1.8rem;pointer-events:none;z-index:998;animation:bst .8s ease forwards;}
+@keyframes fu{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+@keyframes su{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes zi{from{opacity:0;transform:scale(.5);}to{opacity:1;transform:scale(1);}}
+@keyframes shk{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
+@keyframes bst{0%{transform:translateY(0);opacity:1;}100%{transform:translateY(-80px);opacity:0;}}
+@keyframes ce{from{opacity:0;transform:translateY(28px) rotateX(8deg);}to{opacity:1;transform:none;}}
+.shk{animation:shk .3s ease;}
+.ce{animation:ce .4s cubic-bezier(.175,.885,.32,1.275) both;}
+</style>
+</head>
+<body>
+<canvas id="cvs"></canvas>
+
+<div id="intro" class="scr on">
+  <div class="i-glow"></div>
+  <div class="i-badge">🔬 과학 싱크탱크 · 질문 훈련</div>
+  <h1 class="i-title"><span class="c1">질문</span><span class="c2">탐정단 🔍</span></h1>
+  <p class="i-sub">15초 안에 판정하라!<br>탐구 가능한 질문을 찾아내고<br>아쉬운 질문은 직접 고쳐보세요.</p>
+  <div class="ni"><input type="text" id="ni" placeholder="이름 또는 모둠명 입력" maxlength="20" onkeydown="if(event.key==='Enter')go()"></div>
+  <button class="btn-s" onclick="go()">수사 시작! 🚀</button>
+</div>
+
+<div id="game" class="scr">
+  <div class="hud">
+    <span class="hud-name" id="hn">탐정</span>
+    <div class="hud-score">⭐ <span id="sd">0</span>점</div>
+    <div class="hud-combo">콤보 <b id="cd">0</b>🔥</div>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog-meta"><span id="pt">1/31</span><span id="pp">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+  </div>
+  <div class="tmr-row">
+    <div class="tmr-ring">
+      <svg class="tmr-svg" width="62" height="62" viewBox="0 0 62 62">
+        <circle class="tmr-trk" cx="31" cy="31" r="25"/>
+        <circle class="tmr-arc" id="ta" cx="31" cy="31" r="25" stroke="var(--cyan)"/>
+      </svg>
+      <div class="tmr-n" id="tn">15</div>
+    </div>
+    <div class="tmr-bar-wrap"><div class="tmr-bar" id="tb" style="width:100%;background:var(--cyan);"></div></div>
+  </div>
+  <div class="qc ce" id="qc">
+    <span class="qtag t-j">이 질문, 어때?</span>
+    <div class="qt" id="qt"></div>
+    <div class="jg">
+      <button class="jb" id="bg" onclick="judge('good')"><span class="ico">✅</span>좋은 질문</button>
+      <button class="jb" id="bb" onclick="judge('bad')"><span class="ico">❌</span>아쉬운 질문</button>
+      <button class="jb" id="ba" onclick="judge('amb')"><span class="ico">🤔</span>애매해요</button>
+    </div>
+  </div>
+  <div class="fb" id="fb"><div class="fb-t" id="fbt"></div><div class="fb-b" id="fbb"></div></div>
+  <div class="rw" id="rw">
+    <span class="qtag t-r">✏️ 더 좋은 질문으로 고쳐봐요!</span>
+    <div class="rw-h" id="rwh"></div>
+    <textarea id="rwi" placeholder="측정 가능한 변수를 넣어서 탐구 가능한 질문으로 바꿔보세요..."></textarea>
+    <button class="btn-ai" id="aib" onclick="getAI()">🤖 AI 피드백 받기</button>
+    <div class="ai-r" id="air"></div>
+  </div>
+  <button class="btn-nx" id="nx" onclick="next()">다음 질문 →</button>
+</div>
+
+<div id="result" class="scr">
+  <div class="r-glow"></div>
+  <div class="r-rank" id="rr">🏆</div>
+  <div class="r-nm" id="rnm"></div>
+  <div class="r-sc" id="rsc">0점</div>
+  <div class="r-stats">
+    <div class="sb2"><div class="sv" id="s1">0</div><div class="sl">정답</div></div>
+    <div class="sb2"><div class="sv" id="s2">0</div><div class="sl">고쳐쓰기</div></div>
+    <div class="sb2"><div class="sv" id="s3">0</div><div class="sl">최고콤보</div></div>
+  </div>
+  <div class="r-msg" id="rmsg"></div>
+  <div class="r-sh" id="rsh">📊 저장 중...</div>
+  <button class="btn-re" onclick="restart()">다시 도전 🔄</button>
+</div>
+
+<div class="cpop" id="cp"></div>
+
+<script>
+const SHEET_URL="https://script.google.com/macros/s/AKfycbwUKcYHP1YpmbMtdnarj75pyLJGar0e1pW7ZCw8K8gKiOtrlaaK9z5XTLaN4OgPJ3PI/exec";
+const T=15;
+const QS=[
+  {q:"1990년부터 2025년까지 우리나라 해수면 평균 온도는 어떻게 변화했을까?",type:"good",reason:"측정 가능한 변수(해수면 온도, 기간)가 명확하고 데이터로 검증할 수 있어요."},
+  {q:"이산화탄소 농도가 두 배 높아지면 토마토의 성장 속도는 달라질까?",type:"good",reason:"독립변수(CO₂ 농도)와 종속변수(성장 속도)가 분명해서 실험 설계가 가능해요."},
+  {q:"도시 중심부와 외곽 지역의 여름 최고 기온 차이는 얼마나 날까?",type:"good",reason:"열섬 효과를 측정 가능한 방식으로 탐구하는 훌륭한 질문이에요."},
+  {q:"미세먼지 농도가 높은 날 태양광 패널의 발전량은 얼마나 줄어들까?",type:"good",reason:"두 변수의 관계를 데이터로 비교할 수 있어요."},
+  {q:"봄꽃(개나리·벚꽃)의 개화 시기는 최근 30년간 어떻게 달라졌을까?",type:"good",reason:"장기 기록 데이터로 기후변화의 생물학적 영향을 탐구할 수 있어요."},
+  {q:"북극 해빙 면적과 우리나라 겨울 한파 발생 빈도 사이에 관계가 있을까?",type:"good",reason:"두 측정 가능한 현상의 상관관계를 탐구하는 질문이에요."},
+  {q:"해수 온도가 1℃ 상승할 때 태풍의 평균 최대 풍속은 어떻게 변할까?",type:"good",reason:"구체적인 수치와 변수 관계가 명확해 탐구 설계가 가능해요."},
+  {q:"지붕 색깔(흰색 vs 검은색)에 따라 건물 내부 온도 차이는 얼마나 날까?",type:"good",reason:"복사열 흡수 차이를 직접 측정할 수 있는 실험 가능한 질문이에요."},
+  {q:"하천 수온이 1℃ 오를 때 용존산소량은 얼마나 변할까?",type:"good",reason:"변수와 측정 방법이 명확한 훌륭한 탐구 질문이에요."},
+  {q:"같은 면적의 녹지가 도심 기온을 몇 도까지 낮출 수 있을까?",type:"good",reason:"독립변수(녹지 면적)와 종속변수(기온 변화)가 명확해요."},
+  {q:"토양 내 탄소 저장량은 활엽수림과 침엽수림 사이에 차이가 있을까?",type:"good",reason:"비교 집단이 명확하고 측정 가능한 탐구 질문이에요."},
+  {q:"산업혁명 이전 대비 현재 이산화탄소 농도 증가 속도는 얼마나 빨라졌을까?",type:"good",reason:"측정 가능한 데이터를 시간대별로 비교하는 과학적 질문이에요."},
+  {q:"기후변화는 나쁜 건가요?",type:"bad",reason:"'나쁘다'는 가치 판단이라 과학적 탐구가 어려워요. 기후변화가 특정 생태계에 미치는 영향을 구체적으로 물어보세요."},
+  {q:"지구온난화가 뭔가요?",type:"bad",reason:"용어 정의는 검색으로 바로 해결돼요. 지구온난화가 특정 현상에 미치는 영향을 탐구해 보세요."},
+  {q:"기후위기는 언제 해결될까요?",type:"bad",reason:"너무 광범위하고 측정 가능한 변수가 없어요. 특정 기후 지표의 변화를 탐구해 보세요."},
+  {q:"지구를 지키려면 어떻게 해야 하나요?",type:"bad",reason:"너무 광범위해요. 특정 행동이 탄소 배출을 얼마나 줄이는지처럼 구체화해 보세요."},
+  {q:"재생에너지가 좋나요, 화석연료가 좋나요?",type:"bad",reason:"'좋다'는 가치 판단이에요. 탄소 배출량이나 발전 비용처럼 구체적인 지표를 비교해 보세요."},
+  {q:"탄소중립이 중요한가요?",type:"bad",reason:"'중요하다'는 가치 판단이에요. 탄소중립 정책이 특정 지표에 미치는 효과를 탐구해 보세요."},
+  {q:"기후변화를 막을 수 있나요?",type:"bad",reason:"가능성 판단 질문이에요. 특정 대책이 탄소 농도에 얼마나 영향을 주는지 물어보세요."},
+  {q:"북극곰은 멸종위기인가요?",type:"bad",reason:"단순 사실 확인이에요. 북극 해빙 감소가 북극곰 개체수에 미치는 영향을 탐구해 보세요."},
+  {q:"환경오염은 왜 생기나요?",type:"bad",reason:"원인이 너무 다양해서 하나의 탐구로 답하기 어려워요. 특정 오염 물질이나 지역으로 좁혀보세요."},
+  {q:"과학자들은 환경을 사랑하나요?",type:"bad",reason:"사람의 감정을 묻는 질문은 과학적 탐구로 답할 수 없어요."},
+  {q:"기온이 올라가면 식물이 힘들어지지 않을까요?",type:"amb",hint:"'힘들어진다'는 표현이 모호해요. 어떤 식물의 어떤 반응(성장률·개화 시기·생존율)을 측정할지 구체화해 보세요.",reason:"변수가 모호하지만 측정 가능한 방향으로 고치면 훌륭한 탐구 질문이 돼요."},
+  {q:"바다가 따뜻해지면 물고기가 줄어들까요?",type:"amb",hint:"어떤 바다의, 어떤 어종의, 어떤 지표(개체수·서식 범위)를 측정할지 구체화해 보세요.",reason:"방향은 맞지만 변수가 너무 넓어요. 특정 어종이나 해역을 지정하면 탐구 가능해져요."},
+  {q:"탄소를 줄이면 지구가 나아질까요?",type:"amb",hint:"'나아진다'는 기준이 없어요. 어떤 지표(기온·해수면·생태계)가 어떻게 달라지는지 측정 가능하게 바꿔보세요.",reason:"의도는 좋지만 포괄적이에요. 구체적인 지표를 설정하면 훨씬 나은 질문이 돼요."},
+  {q:"전기차를 쓰면 환경에 좋을까요?",type:"amb",hint:"'환경에 좋다'는 기준이 불분명해요. 어떤 단계(제조·운행·폐기)에서 어떤 물질 배출량을 비교할지 구체화해 보세요.",reason:"비교 대상과 측정 지표를 명확히 하면 훌륭한 탐구 질문이 돼요."},
+  {q:"숲이 많으면 공기가 깨끗해질까요?",type:"amb",hint:"CO₂나 미세먼지 농도처럼 측정 가능한 물질을 지정하고 어떤 조건에서 비교할지 구체화해 보세요.",reason:"측정 가능한 방향으로 조금만 다듬으면 좋은 탐구 질문이 돼요."},
+  {q:"빙하가 녹으면 우리나라도 위험해질까요?",type:"amb",hint:"'위험하다'는 기준이 모호해요. 해수면 상승이 특정 해안 지역에 얼마나 영향을 줄지처럼 구체화해 보세요.",reason:"측정 지표를 구체화하면 과학적 탐구가 가능한 질문이 돼요."},
+  {q:"플라스틱 쓰레기가 바다 생물에 영향을 줄까요?",type:"amb",hint:"어떤 생물의 어떤 지표(체내 미세플라스틱 농도·번식률)를 어떤 조건에서 비교할지 구체화해 보세요.",reason:"측정 대상을 구체화하면 탐구 가능한 질문이 돼요."},
+];
+
+let player="",idx=0,score=0,combo=0,maxCombo=0,ok=0,rws=0,judged=false,tid=null,tl=T,sdata=[];
+let shuffled=[];
+const sh=a=>{document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(a).classList.add('on');};
+const $=id=>document.getElementById(id);
+const shuf=a=>{const r=[...a];for(let i=r.length-1;i>0;i--){const j=0|Math.random()*(i+1);[r[i],r[j]]=[r[j],r[i]];}return r;};
+
+function go(){
+  const n=$('ni').value.trim();
+  if(!n){$('ni').style.borderColor='var(--red)';return;}
+  player=n;shuffled=shuf(QS);
+  idx=0;score=0;combo=0;maxCombo=0;ok=0;rws=0;sdata=[];
+  $('hn').textContent=player+' 탐정';
+  sh('game');rq();
+}
+
+function rq(){
+  judged=false;
+  const q=shuffled[idx],tot=shuffled.length;
+  $('pt').textContent=`${idx+1} / ${tot}`;
+  $('pp').textContent=Math.round(idx/tot*100)+'%';
+  $('pf').style.width=Math.round(idx/tot*100)+'%';
+  $('sd').textContent=score;$('cd').textContent=combo;
+  $('qt').textContent=q.q;
+  ['bg','bb','ba'].forEach(id=>{const b=$(id);b.disabled=false;b.className='jb';});
+  $('fb').style.display='none';$('fb').className='fb';
+  $('rw').style.display='none';$('air').style.display='none';
+  $('rwi').value='';$('nx').style.display='none';
+  $('aib').disabled=false;$('aib').textContent='🤖 AI 피드백 받기';
+  const c=$('qc');c.classList.remove('ce');void c.offsetWidth;c.classList.add('ce');
+  startT();
+}
+
+function startT(){
+  clearInterval(tid);tl=T;updT();
+  tid=setInterval(()=>{tl--;updT();if(tl<=0){clearInterval(tid);timeout();}},1000);
+}
+
+function updT(){
+  const p=tl/T;
+  $('ta').style.strokeDashoffset=157*(1-p);
+  $('tn').textContent=tl;$('tb').style.width=(p*100)+'%';
+  const col=tl<=5?'var(--red)':tl<=9?'var(--yellow)':'var(--cyan)';
+  $('ta').style.stroke=col;$('tb').style.background=col;$('tn').style.color=col;
+}
+
+function timeout(){
+  if(judged)return;
+  judged=true;combo=0;$('cd').textContent=0;
+  ['bg','bb','ba'].forEach(id=>$(id).disabled=true);
+  const q=shuffled[idx];
+  showFB('fto','⏰ 시간 초과!',q.reason);
+  if(q.type==='bad'||q.type==='amb')showRW(q);else $('nx').style.display='block';
+  const c=$('qc');c.classList.add('shk');setTimeout(()=>c.classList.remove('shk'),300);
+  sdata.push({name:player,question:q.q,type:q.type,userChoice:'timeout',correct:false,pts:0});
+}
+
+function judge(choice){
+  if(judged)return;judged=true;clearInterval(tid);
+  const q=shuffled[idx],isOk=choice===q.type,spd=Math.max(0,tl-5);
+  let pts=0;
+  const bmap={good:'bg',bad:'bb',amb:'ba'},cmap={good:'sg',bad:'sb',amb:'sa'};
+  ['bg','bb','ba'].forEach(id=>$(id).disabled=true);
+  $(bmap[choice]).classList.add(cmap[choice]);
+  if(q.type==='amb'){
+    pts=5+spd;combo=0;score+=pts;$('sd').textContent=score;
+    showFB('fam','🤔 애매한 질문이에요! +'+pts+'점',q.reason);showRW(q);burst('+'+pts);
+  }else if(isOk){
+    pts=10+spd;combo++;if(combo>maxCombo)maxCombo=combo;ok++;score+=pts;$('sd').textContent=score;
+    showFB('fok','✅ 정확해요! +'+pts+'점'+(spd>0?' ⚡빠른 답변 +'+spd+'점!':''),q.reason);
+    burst('+'+pts);if(combo>=3)showCombo(combo);
+    if(q.type==='bad'||q.type==='amb')showRW(q);else $('nx').style.display='block';
+  }else{
+    combo=0;showFB('fng','❌ 아쉬워요!',q.reason);
+    const c=$('qc');c.classList.add('shk');setTimeout(()=>c.classList.remove('shk'),300);
+    if(q.type==='bad'||q.type==='amb')showRW(q);else $('nx').style.display='block';
+  }
+  $('cd').textContent=combo;
+  sdata.push({name:player,question:q.q,type:q.type,userChoice:choice,correct:isOk,pts});
+}
+
+function showFB(cls,t,b){const fb=$('fb');fb.className='fb '+cls;$('fbt').textContent=t;$('fbb').textContent=b;fb.style.display='block';}
+function showRW(q){$('rw').style.display='block';$('rwh').textContent=q.hint||'측정 가능한 변수를 넣어서 탐구 가능한 질문으로 바꿔보세요!';}
+function burst(txt){
+  const el=document.createElement('div');el.className='sburst';el.textContent=txt;
+  el.style.cssText=`color:var(--yellow);top:${25+Math.random()*20}%;left:${35+Math.random()*30}%;`;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),800);
+}
+const CM={3:'🔥 3콤보!',4:'⚡ 4콤보!!',5:'💥 5콤보!!!',6:'🌟 6콤보!!!!',7:'🚀 7콤보!!!!!',8:'👑 8콤보!!!!!!',9:'⭐ 9콤보!!!!!!!',10:'🏆 10콤보!!'};
+function showCombo(n){
+  const el=$('cp');el.textContent=CM[n]||'🔥 '+n+'콤보!!';
+  el.style.cssText='transform:translate(-50%,-50%) scale(1.2);opacity:1;transition:transform .3s cubic-bezier(.175,.885,.32,1.275),opacity .3s;';
+  setTimeout(()=>{el.style.cssText='transform:translate(-50%,-50%) scale(0);opacity:0;transition:all .3s ease;';},1300);
+}
+
+async function getAI(){
+  const rw=$('rwi').value.trim();
+  if(!rw){$('rwi').style.borderColor='var(--red)';return;}
+  const btn=$('aib'),box=$('air');
+  btn.disabled=true;btn.textContent='🤖 분석 중...';
+  box.style.display='block';
+  box.innerHTML='<span style="color:var(--muted);font-style:italic;">AI가 분석하고 있어요...</span>';
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,
+        system:`중학교 과학 교사입니다. 학생이 고쳐쓴 탐구 질문에 짧고 친절하게 피드백합니다.
+좋은 탐구 질문: ①측정 가능한 변수 ②명확한 독립·종속변수 ③실험·데이터로 검증 가능 ④가치판단 아님.
+반드시 아래 형식으로만:
+[판정] 탐구 가능한 질문 / 조금 더 다듬어요 / 아직 아쉬워요
+[좋은 점] 한 문장
+[개선 팁] 한 문장(없으면 생략)
+[보너스점수] 숫자만(0~20)`,
+        messages:[{role:"user",content:`원래 질문: ${shuffled[idx].q}\n학생 수정: ${rw}`}]})});
+    const d=await res.json(),txt=d.content?.[0]?.text||"피드백을 가져오지 못했어요.";
+    box.innerHTML=txt.replace(/\n/g,'<br>');
+    const m=txt.match(/\[보너스점수\]\s*(\d+)/);
+    if(m){const b=+m[1];score+=b;$('sd').textContent=score;burst('+'+b);rws++;
+      box.innerHTML+=`<br><b style="color:var(--yellow)">🎉 보너스 +${b}점!</b>`;}
+    const last=sdata[sdata.length-1];if(last){last.rewrite=rw;last.aiFeedback=txt;}
+    $('nx').style.display='block';
+  }catch(e){
+    box.innerHTML='<span style="color:var(--red)">⚠️ AI 오류. 다음 문제로 넘어가세요.</span>';
+    $('nx').style.display='block';
+  }
+  btn.textContent='🤖 AI 피드백 받기';
+}
+
+function next(){idx++;idx>=shuffled.length?showResult():rq();}
+
+function showResult(){
+  clearInterval(tid);sh('result');
+  const tot=shuffled.length,pct=Math.round(ok/tot*100);
+  let rank='🌱',msg='질문 탐정의 길은 멀지만 시작이 반! 다시 도전해봐요.';
+  if(pct>=80){rank='👑';msg='완벽한 탐정! 탐구 질문을 정확하게 구별했어요. 진짜 과학자 자질이 있어요!';}
+  else if(pct>=60){rank='🏆';msg='베테랑 탐정! 좋은 탐구 질문을 잘 구별하고 있어요. 조금만 더 연습하면 완벽해요!';}
+  else if(pct>=40){rank='🔍';msg='수습 탐정! 탐구 질문의 특징을 파악하고 있어요. 고쳐쓰기를 더 해보면 실력이 늘어요!';}
+  $('rr').textContent=rank;$('rnm').textContent=player+' 탐정의 수사 결과';$('rsc').textContent=score+'점';
+  $('s1').textContent=ok;$('s2').textContent=rws;$('s3').textContent=maxCombo;$('rmsg').textContent=msg;
+  save();
+}
+
+async function save(){
+  const el=$('rsh');
+  if(SHEET_URL==="https://script.google.com/macros/s/AKfycbwUKcYHP1YpmbMtdnarj75pyLJGar0e1pW7ZCw8K8gKiOtrlaaK9z5XTLaN4OgPJ3PI/exec"){el.textContent='📋 구글 시트 연동 전이에요. 화면을 선생님께 보여주세요!';return;}
+  try{
+    const rwt=sdata.filter(r=>r.rewrite).map(r=>`[원] ${r.question} → [수정] ${r.rewrite}`).join(' | ');
+    await fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name:player,score,correct:ok,total:shuffled.length,maxCombo,rewrites:rwt,timestamp:new Date().toLocaleString('ko-KR')})});
+    el.textContent='✅ 구글 시트에 저장됐어요!';
+  }catch(e){el.textContent='⚠️ 저장 실패. 화면을 선생님께 보여주세요.';}
+}
+
+function restart(){$('ni').value='';sh('intro');}
+
+(()=>{
+  const cv=$('cvs'),cx=cv.getContext('2d');
+  let W,H,pts=[];
+  const rsz=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;};
+  rsz();window.addEventListener('resize',rsz);
+  const cols=['rgba(0,245,212,','rgba(255,214,10,','rgba(30,144,255,','rgba(168,85,247,'];
+  for(let i=0;i<55;i++)pts.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.5+.4,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,c:cols[0|Math.random()*4],a:Math.random()*.45+.15});
+  const draw=()=>{cx.clearRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle=p.c+p.a+')';cx.fill();});requestAnimationFrame(draw);};
+  draw();
+})();
+</script>
+</body>
+</html>
