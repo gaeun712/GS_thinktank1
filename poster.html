@@ -9,7 +9,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-/* ★ Firebase 설정값을 여기에 붙여넣으세요 ★ */
 const firebaseConfig = {
   apiKey:            "AIzaSyBj9AreL1REhqjfm3m6JcYxF3G9c8ewHF0",
   authDomain:        "sinktank-poster.firebaseapp.com",
@@ -62,8 +61,8 @@ const apply = d => {
   });
   if(d.photos?.length){
     const area=document.getElementById('photo-area');
-    while(area.querySelectorAll('.ps').length<d.photos.length) addSlot(false);
-    area.querySelectorAll('.ps').forEach((w,i)=>{
+    const slots=area.querySelectorAll('.ps');
+    slots.forEach((w,i)=>{
       if(d.photos[i]){const s=w.querySelector('.pslot');s.dataset.img=d.photos[i];renderPhoto(s,d.photos[i]);}
       if(d.caps?.[i]) w.querySelector('.pcap').innerText=d.caps[i];
     });
@@ -81,11 +80,8 @@ window._fb_connect = ()=>{
   const c2=document.getElementById('sel-center').value;
   key=`sinktank_${c2}_${t}`;
   updateBadge();
-  // 이전 구독 해제
   if(_unsubscribe) { _unsubscribe(); _unsubscribe=null; }
-  // 화면 초기화
   if(window.clearPoster) window.clearPoster();
-  // 새 구독
   _unsubscribe = onValue(ref(db,`posters/${key}`),snap=>{
     if(!snap.exists()){ syncing=false; return; }
     syncing=true; apply(snap.val());
@@ -196,12 +192,8 @@ body{background:#dde2ea;min-height:100vh}
 /* ══ POSTER WRAP ══ */
 #pw{display:flex;justify-content:center;padding:28px 16px 60px}
 
-/* ══ POSTER — A1 (794 × 1123px) ══
-   화면: width 고정 794px, height는 min-height 1123px (내용 많으면 늘어남)
-   인쇄: @page A1, transform으로 맞춤
-*/
+/* ══ POSTER ══ */
 #poster{
-  /* A1 비율 고정: 860 × 1216px (1:√2) */
   width:860px;
   height:1216px;
   background:#fdfcfa;
@@ -323,8 +315,9 @@ body{background:#dde2ea;min-height:100vh}
 .dbox{background:linear-gradient(135deg,#f0faf5,#eaf4fd);border:1px solid #bdd8ea;border-radius:7px;padding:9px 11px}
 
 /* ── 사진 ── */
-.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
-.ps{display:flex;flex-direction:column;gap:1px}
+/* [수정] 사진 4개 고정: 4열 균등 분할 */
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ps{display:flex;flex-direction:column;gap:2px}
 .pslot{
   aspect-ratio:5/4;border:2px dashed #aacde8;border-radius:7px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -343,8 +336,6 @@ body{background:#dde2ea;min-height:100vh}
 .pcap{font-family:'FP',sans-serif!important;font-size:9px;color:#4a4a6a;text-align:center;outline:none;border-radius:3px;padding:0px 2px;transition:background .15s;min-height:14px}
 .pcap:focus{background:rgba(21,101,168,.06)}
 .pcap:empty::before{content:'사진 설명';color:#ccc;font-style:italic}
-.add-photo{border:1px dashed #aacde8;background:#f0f6fd;color:#1565a8;font-size:10px;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;margin-top:6px;transition:all .15s}
-.add-photo:hover{background:#e0edf9;border-color:#1565a8}
 
 /* ── FOOTER ── */
 #pfoot{
@@ -370,7 +361,7 @@ body{background:#dde2ea;min-height:100vh}
 
 /* ── PRINT ── */
 @media print{
-  #tb,#ftb,#cpop,#toast,.add-photo,.pov,.cbtn,.pph{display:none!important}
+  #tb,#ftb,#cpop,#toast,.pov,.cbtn,.pph{display:none!important}
   *{
     -webkit-print-color-adjust:exact!important;
     print-color-adjust:exact!important;
@@ -466,7 +457,7 @@ body{background:#dde2ea;min-height:100vh}
 <!-- BODY -->
 <div id="pbody">
 
-<!-- 탐구 동기 + 질문 + 가설 (3열, full) -->
+<!-- 탐구 동기 + 질문 + 가설 -->
 <div class="card c-blue full" data-sid="motive" style="height:auto">
   <div class="chdr"><div class="chdr-l"><div class="cico">💡</div><span class="ctitle">탐구 동기 · 질문 · 가설</span></div><button class="cbtn" onclick="openCP(event,'motive')">🎨</button></div>
   <div class="cbody" style="flex-direction:row;gap:0;padding:0">
@@ -491,7 +482,7 @@ body{background:#dde2ea;min-height:100vh}
   </div>
 </div>
 
-<!-- 이론적 배경 (full) -->
+<!-- 이론적 배경 -->
 <div class="card c-teal full" data-sid="bg" style="flex-shrink:0;font-size:0">
   <div class="chdr"><div class="chdr-l"><div class="cico">📚</div><span class="ctitle">이론적 배경</span></div><button class="cbtn" onclick="openCP(event,'bg')">🎨</button></div>
   <div class="cbody">
@@ -512,7 +503,7 @@ body{background:#dde2ea;min-height:100vh}
   </div>
 </div>
 
-<!-- 탐구 방법 (full) -->
+<!-- 탐구 방법 -->
 <div class="card c-warm" data-sid="method" style="flex:6">
   <div class="chdr"><div class="chdr-l"><div class="cico">🔬</div><span class="ctitle">탐구 방법</span></div><button class="cbtn" onclick="openCP(event,'method')">🎨</button></div>
   <div class="cbody">
@@ -523,7 +514,7 @@ body{background:#dde2ea;min-height:100vh}
   </div>
 </div>
 
-<!-- 탐구 결과 (full) -->
+<!-- 탐구 결과 -->
 <div class="card c-green" data-sid="result" style="flex:6">
   <div class="chdr"><div class="chdr-l"><div class="cico">📊</div><span class="ctitle">탐구 결과</span></div><button class="cbtn" onclick="openCP(event,'result')">🎨</button></div>
   <div class="cbody">
@@ -533,14 +524,11 @@ body{background:#dde2ea;min-height:100vh}
   </div>
 </div>
 
-<!-- 탐구 사진 (full) -->
-<div class="card c-green full" data-sid="photo" style="flex-shrink:0;--chdr-pad:4px 11px">
+<!-- ★ 탐구 사진 — 4개 고정, +추가 버튼 없음 ★ -->
+<div class="card c-green full" data-sid="photo" style="flex-shrink:0">
   <div class="chdr"><div class="chdr-l"><div class="cico">📷</div><span class="ctitle">탐구 사진</span></div><button class="cbtn" onclick="openCP(event,'photo')">🎨</button></div>
-  <div class="cbody" style="padding:2px 6px;flex-direction:row;align-items:center;gap:4px">
-    <div class="pgrid" id="photo-area" style="width:82%"></div>
-    <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1;height:100%">
-      <button class="add-photo" onclick="addSlot(true)" style="writing-mode:vertical-rl;height:70px;padding:6px 5px;font-size:10px">＋ 사진 추가</button>
-    </div>
+  <div class="cbody" style="padding:6px 11px">
+    <div class="pgrid" id="photo-area"></div>
   </div>
 </div>
 
@@ -554,6 +542,7 @@ body{background:#dde2ea;min-height:100vh}
       data-fk="conc" data-fs="13" style="flex:1;min-height:24px" oninput="as()"></div>
     <div class="sdiv"></div>
     <div class="slbl sl-purple">기후변화와의 연결</div>
+    <!-- ★ data-fk 추가 → 글씨 크기 조절 가능 ★ -->
     <div class="f" id="f-climlink" contenteditable="true" spellcheck="false"
       data-ph="이 탐구 결과가 기후변화와 어떻게 연결되나요?"
       data-fk="climlink" data-fs="13" style="flex:1;min-height:24px" oninput="as()"></div>
@@ -565,18 +554,20 @@ body{background:#dde2ea;min-height:100vh}
   <div class="chdr"><div class="chdr-l"><div class="cico">💬</div><span class="ctitle">토의</span></div><button class="cbtn" onclick="openCP(event,'disc')">🎨</button></div>
   <div class="cbody" style="gap:4px">
     <div class="slbl sl-purple">오차 및 한계</div>
+    <!-- ★ data-fk 추가 → 글씨 크기 조절 가능 ★ -->
     <div class="f" id="f-disc" contenteditable="true" spellcheck="false"
       data-ph="실험에서 오차가 생긴 원인, 한계점은?"
       data-fk="disc" data-fs="13" style="min-height:36px;max-height:48px;overflow:auto" oninput="as()"></div>
     <div class="sdiv"></div>
     <div class="slbl sl-purple" style="color:#c04818">❓ 탐구 후 새로운 질문</div>
+    <!-- ★ data-fk 추가 → 글씨 크기 조절 가능 ★ -->
     <div class="f" id="f-newq" contenteditable="true" spellcheck="false"
       data-ph="이 탐구를 하면서 새롭게 생긴 궁금증을 질문으로 써주세요."
       data-fk="newq" data-fs="13" style="min-height:28px" oninput="as()"></div>
   </div>
 </div>
 
-<!-- 참고문헌 (full) -->
+<!-- 참고문헌 -->
 <div class="card c-dark full" data-sid="refs">
   <div class="chdr"><div class="chdr-l"><div class="cico">🔖</div><span class="ctitle">참고문헌</span></div><button class="cbtn" onclick="openCP(event,'refs')">🎨</button></div>
   <div class="cbody">
@@ -608,19 +599,24 @@ window.clearPoster = function clearPoster(){
     const el=document.getElementById(id);
     if(el) el.innerHTML='';
   });
-  // 메타 입력 초기화 (학교 제외)
   ['m-grade','m-members','m-date'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value='';
   });
-  // 날짜 초기화
-  const dt=document.getElementById('m-date');
-  if(dt) dt.value='';
-  // 사진 초기화
-  const area=document.getElementById('photo-area');
-  if(area) area.innerHTML='';
-  [0,1,2,3].forEach(()=>addSlot(false));
-  // 색상 초기화
+  // 사진 슬롯 초기화 (이미지만 지우고 슬롯 유지)
+  document.querySelectorAll('.pslot').forEach(slot=>{
+    slot.dataset.img='';
+    slot.classList.remove('has');
+    const img=slot.querySelector('img');
+    if(img) img.remove();
+    if(!slot.querySelector('.pph')){
+      const ph=document.createElement('div');
+      ph.className='pph';
+      ph.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M8.5 5 10 3h4l1.5 2"/></svg><span>클릭하여 추가</span>`;
+      slot.insertBefore(ph, slot.querySelector('.pov'));
+    }
+  });
+  document.querySelectorAll('.pcap').forEach(cap=>cap.innerText='');
   document.querySelectorAll('.card[data-sid] .cbody').forEach(el=>el.style.background='');
   document.querySelectorAll('.card[data-sid] .chdr').forEach(el=>el.style.background='');
 }
@@ -655,10 +651,16 @@ document.addEventListener('focusin', e=>{
   if(!f)return;
   curField=f; clearTimeout(ftTimer);
   const ft=document.getElementById('ftb');
-  const r=f.getBoundingClientRect();
-  ft.style.top=(r.top+window.scrollY-46)+'px';
-  ft.style.left=Math.min(r.left, window.innerWidth-270)+'px';
   ft.classList.add('on');
+  // 위치 계산: 필드 위에 붙이되, 화면 위/아래 경계를 벗어나지 않게 처리
+  const r=f.getBoundingClientRect();
+  const ftH=44; // 툴바 높이 추정값
+  let top=r.top-ftH-6; // 기본: 필드 바로 위
+  if(top<58) top=r.bottom+6; // 화면 위쪽(툴바 포함)에 걸리면 아래로
+  if(top+ftH>window.innerHeight-10) top=window.innerHeight-ftH-10; // 화면 아래 벗어나면 클램프
+  // fixed 기준이므로 scrollY 불필요
+  ft.style.top=top+'px';
+  ft.style.left=Math.min(Math.max(r.left,8), window.innerWidth-278)+'px';
   document.getElementById('fsz-val').textContent=(f.dataset.fs||'13')+'px';
 });
 document.addEventListener('focusout', ()=>{
@@ -679,34 +681,27 @@ function fszSet(s){
 
 /* ══ 색상 팝업 ══ */
 const SWATCHES=[
-  // 블루 계열
   'linear-gradient(90deg,#0b3d6b,#1565a8)',
   'linear-gradient(90deg,#1a2a5e,#2a4aaa)',
   'linear-gradient(90deg,#0d2137,#0b5ea8)',
-  // 틸/초록 계열
   'linear-gradient(90deg,#0c5a5a,#0c8a7a)',
   'linear-gradient(90deg,#1a5c38,#1a8a50)',
   'linear-gradient(90deg,#0a3828,#1a7a50)',
-  // 오렌지/레드 계열
   'linear-gradient(90deg,#8c2e08,#c04818)',
   'linear-gradient(90deg,#7a1a10,#c03020)',
   'linear-gradient(90deg,#a04010,#d06820)',
-  // 보라 계열
   'linear-gradient(90deg,#381860,#6030a0)',
   'linear-gradient(90deg,#2a1050,#5828a0)',
   'linear-gradient(90deg,#4a1060,#8020a0)',
-  // 슬레이트/차콜 계열
   'linear-gradient(90deg,#1a1a2e,#2a2a50)',
   'linear-gradient(90deg,#1e2a38,#2a4060)',
   'linear-gradient(90deg,#252525,#404060)',
-  // 골드/앰버 계열
   'linear-gradient(90deg,#5a3800,#a06800)',
   'linear-gradient(90deg,#6a3010,#b05020)',
   'linear-gradient(90deg,#3a2800,#806000)',
 ];
 let curSid=null;
 
-// 스와치 초기화
 (()=>{
   const sw=document.getElementById('cp-sw');
   SWATCHES.forEach(c=>{
@@ -744,9 +739,14 @@ document.addEventListener('click',e=>{
     document.getElementById('cpop').classList.remove('on');
 });
 
-/* ══ 사진 ══ */
-function addSlot(save=false){
+/* ══ 사진 — 4개 고정 슬롯 ══ */
+function initPhotoSlots(){
   const area=document.getElementById('photo-area');
+  area.innerHTML=''; // 초기화
+  for(let i=0;i<4;i++) createSlot(area);
+}
+
+function createSlot(area){
   const wrap=document.createElement('div'); wrap.className='ps';
   const slot=document.createElement('div'); slot.className='pslot'; slot.dataset.img='';
   slot.innerHTML=`
@@ -765,7 +765,6 @@ function addSlot(save=false){
   slot.addEventListener('click',()=>inp.click());
   inp.addEventListener('change',e=>{
     const f=e.target.files[0]; if(!f)return;
-    // 이미지 리사이즈 (Firebase 용량 절약)
     const img=new Image(), url=URL.createObjectURL(f);
     img.onload=()=>{
       const canvas=document.createElement('canvas');
@@ -784,8 +783,8 @@ function addSlot(save=false){
   cap.oninput=as;
   wrap.appendChild(slot); wrap.appendChild(cap);
   area.appendChild(wrap);
-  if(save)as();
 }
+
 function renderPhoto(slot,src){
   let img=slot.querySelector('img');
   if(!img){img=document.createElement('img');slot.insertBefore(img,slot.firstChild);}
@@ -793,7 +792,9 @@ function renderPhoto(slot,src){
   slot.querySelector('.pph')?.remove();
   slot.classList.add('has');
 }
-[0,1,2,3].forEach(()=>addSlot(false));
+
+// ★ 페이지 로드 시 4개 슬롯 생성
+initPhotoSlots();
 
 /* ══ JSON 백업 ══ */
 function collectLocal(){
@@ -831,6 +832,15 @@ function applyLocal(d){
     const el=document.querySelector(`.card[data-sid="${k}"] .chdr`);
     if(el&&v)el.style.background=v;
   });
+  if(d.photos?.length){
+    const slots=document.querySelectorAll('.pslot');
+    slots.forEach((slot,i)=>{
+      if(d.photos[i]){slot.dataset.img=d.photos[i];renderPhoto(slot,d.photos[i]);}
+    });
+    document.querySelectorAll('.pcap').forEach((cap,i)=>{
+      if(d.caps?.[i]) cap.innerText=d.caps[i];
+    });
+  }
 }
 function dlJSON(){
   const t=document.getElementById('sel-topic').value||'미선택';
@@ -860,4 +870,3 @@ function toast(msg,type='ok'){
 </script>
 </body>
 </html>
-
